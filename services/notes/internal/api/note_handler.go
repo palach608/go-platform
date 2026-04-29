@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	apiModel "github.com/SilverName608/go-notes/internal/api/model"
-	"github.com/SilverName608/go-notes/internal/domain/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	apiModel "github.com/palach608/go-notes/internal/api/model"
+	"github.com/palach608/go-notes/internal/domain/service"
 )
 
 type NoteHandler struct {

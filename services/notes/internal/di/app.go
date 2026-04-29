@@ -4,17 +4,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/SilverName608/go-notes/internal/api"
-	"github.com/SilverName608/go-notes/internal/application"
-	"github.com/SilverName608/go-notes/internal/config"
-	"github.com/SilverName608/go-notes/internal/domain/service"
-	"github.com/SilverName608/go-notes/internal/infrastructure/db"
-	"github.com/SilverName608/go-notes/internal/infrastructure/repository"
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/palach608/go-platform/pkg/auth" // ← добавь этот импорт
+	"github.com/palach608/go-platform/services/auth/internal/config"
+	"github.com/palach608/go-platform/services/notes/internal/api"
 	"go.uber.org/fx"
 )
 
@@ -22,54 +17,44 @@ func NewApp() *fx.App {
 	return fx.New(
 		fx.Provide(config.Load),
 		fx.Provide(NewPool),
-		fx.Provide(fx.Annotate(
-			repository.NewPostgresUserRepository,
-			fx.As(new(repository.UserRepository)),
-		)),
-		fx.Provide(fx.Annotate(
-			repository.NewPostgresNoteRepository,
-			fx.As(new(repository.NoteRepository)),
-		)),
-		fx.Provide(fx.Annotate(
-			NewUserService,
-			fx.As(new(service.UserService)),
-		)),
+		fx.Provide(repository.NewPostgresNoteRepository), // UserRepository пока убираем
 		fx.Provide(application.NewNoteService),
-		fx.Provide(NewMiddleware),
-		fx.Provide(api.NewUserHandler),
+
+		// Новый middleware из pkg
+		fx.Provide(NewJWTMiddleware),
+
 		fx.Provide(api.NewNoteHandler),
-		fx.Provide(api.NewRouter),
+		fx.Provide(api.NewRouter), // ← будет принимать jwtSecret
 		fx.Invoke(RunServer),
 	)
+}
+
+// Новый middleware из pkg/auth
+func NewJWTMiddleware(cfg *config.Config) *auth.Middleware {
+	return auth.NewMiddleware(cfg.JWTSecret)
+}
+
+// Обновлённый NewRouter — принимает только noteHandler и jwtSecret
+func NewRouter(noteHandler *api.NoteHandler, middleware *auth.Middleware) chi.Router {
+	return api.NewRouter(noteHandler, middleware) // пока так, потом можно упростить
 }
 
 func NewPool(cfg *config.Config) (*pgxpool.Pool, error) {
 	return db.NewPool(cfg.DBDSN)
 }
 
-func NewMiddleware(cfg *config.Config) *api.Middleware {
-	return api.NewMiddleware(cfg.JWTSecret)
-}
-
-func NewUserService(repo repository.UserRepository, cfg *config.Config) *application.UserServiceImpl {
-	return application.NewUserService(repo, cfg.JWTSecret)
-}
-
 func RunServer(router chi.Router, cfg *config.Config) {
 	if err := runMigrations(cfg); err != nil {
 		panic(err)
 	}
-	fmt.Printf("Server launch → http://localhost:%s\n", cfg.HTTPPort)
+	fmt.Printf("Notes Service launch → http://localhost:%s\n", cfg.HTTPPort)
 	if err := http.ListenAndServe(":"+cfg.HTTPPort, router); err != nil {
 		panic(err)
 	}
 }
 
 func runMigrations(cfg *config.Config) error {
-	m, err := migrate.New(
-		"file://migrations",
-		cfg.DBDSN,
-	)
+	m, err := migrate.New("file://migrations", cfg.DBDSN)
 	if err != nil {
 		return err
 	}
