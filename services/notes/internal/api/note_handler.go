@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	apiModel "github.com/palach608/go-notes/internal/api/model"
-	"github.com/palach608/go-notes/internal/domain/service"
+	apiModel "github.com/palach608/go-platform/services/notes/internal/api/model"
+	"github.com/palach608/go-platform/services/notes/internal/domain/service"
 )
 
 type NoteHandler struct {

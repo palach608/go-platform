@@ -3,9 +3,9 @@ package repository
 import (
 	"context"
 
-	domainModel "github.com/SilverName608/go-notes/internal/domain/model"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	domainModel "github.com/palach608/go-platform/services/notes/internal/domain/model"
 )
 
 type PostgresNoteRepository struct {

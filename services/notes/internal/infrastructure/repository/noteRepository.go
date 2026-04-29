@@ -1,8 +1,8 @@
 package repository
 
 import (
-	domainModel "github.com/SilverName608/go-notes/internal/domain/model"
 	"github.com/google/uuid"
+	domainModel "github.com/palach608/go-platform/services/notes/internal/domain/model"
 )
 
 type NoteRepository interface {

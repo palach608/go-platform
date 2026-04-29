@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/SilverName608/go-notes/internal/di"
+	"github.com/palach608/go-platform/services/notes/internal/di"
 )
 
 func main() {

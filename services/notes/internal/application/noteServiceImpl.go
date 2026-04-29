@@ -1,11 +1,11 @@
 package application
 
 import (
-	apiModel "github.com/SilverName608/go-notes/internal/api/model"
-	domainModel "github.com/SilverName608/go-notes/internal/domain/model"
-	"github.com/SilverName608/go-notes/internal/domain/service"
-	"github.com/SilverName608/go-notes/internal/infrastructure/repository"
 	"github.com/google/uuid"
+	apiModel "github.com/palach608/go-platform/services/notes/internal/api/model"
+	domainModel "github.com/palach608/go-platform/services/notes/internal/domain/model"
+	"github.com/palach608/go-platform/services/notes/internal/domain/service"
+	"github.com/palach608/go-platform/services/notes/internal/infrastructure/repository"
 )
 
 type NoteServiceImpl struct {
