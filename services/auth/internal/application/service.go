@@ -16,7 +16,10 @@ func NewAuthService(repo domain.UserRepository) *AuthService {
 }
 
 func (s *AuthService) Register(ctx context.Context, username, email, password string) error {
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
 
 	user := &domain.User{
 		Username: username,
@@ -25,4 +28,19 @@ func (s *AuthService) Register(ctx context.Context, username, email, password st
 	}
 
 	return s.repo.Create(ctx, user)
+}
+
+func (s *AuthService) UpdateUser(ctx context.Context, user *domain.User) error {
+	if user.Password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
+		user.Password = string(hashedPassword)
+	}
+	return s.repo.Update(ctx, user)
+}
+
+func (s *AuthService) DeleteUser(ctx context.Context, id uint) error {
+	return s.repo.Delete(ctx, id)
 }
