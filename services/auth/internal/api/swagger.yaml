@@ -1,0 +1,85 @@
+openapi: 3.0.0
+info:
+  title: Auth Service API
+  version: 1.0.0
+
+paths:
+  /auth/register:
+    post:
+      summary: Регистрация пользователя
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: {type: string}
+                email: {type: string}
+                password: {type: string}
+      responses:
+        201:
+          description: Успешно зарегистрирован
+
+  /auth/login:
+    post:
+      summary: Логин и получение токена
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: {type: string}
+                password: {type: string}
+      responses:
+        200:
+          description: Токен получен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: {type: string}
+
+  /auth/user:
+    put:
+      summary: Редактировать профиль
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id: {type: integer}
+                username: {type: string}
+                email: {type: string}
+                password: {type: string}
+      responses:
+        200:
+          description: Данные обновлены
+        500:
+          description: Ошибка сервера
+
+  /auth/user/{id}:
+    delete:
+      summary: Удалить пользователя
+      tags: [Auth]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Удалено
+        404:
+          description: Не найден
+        500:
+          description: Ошибка сервера

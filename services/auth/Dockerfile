@@ -15,5 +15,6 @@ WORKDIR /app
 COPY --from=builder /app/auth-server .
 COPY --from=builder /go/bin/goose /usr/local/bin/goose
 COPY --from=builder /app/migrations/auth ./migrations
+COPY --from=builder /app/services/auth/internal/api ./api
 
 CMD goose -dir ./migrations postgres "$DB_DSN" up && ./auth-server
