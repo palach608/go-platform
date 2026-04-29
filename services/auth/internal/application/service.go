@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -15,10 +16,11 @@ type AuthService struct {
 }
 
 func NewAuthService(repo domain.UserRepository) *AuthService {
-	// Секрет потом прокинем через DI из конфига
+	secret := os.Getenv("JWT_SECRET")
+
 	return &AuthService{
 		repo:      repo,
-		jwtSecret: "your-very-secret-key",
+		jwtSecret: secret,
 	}
 }
 
