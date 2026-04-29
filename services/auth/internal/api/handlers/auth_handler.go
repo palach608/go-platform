@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -22,7 +23,12 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
 	json.NewDecoder(r.Body).Decode(&req)
 
-	if err := h.svc.Register(r.Context(), req.Username, req.Email, req.Password); err != nil {
+	err := h.svc.Register(r.Context(), req.Username, req.Email, req.Password)
+	if err != nil {
+		if errors.Is(err, application.ErrUserAlreadyExists) {
+			http.Error(w, "User with this email already exists", http.StatusConflict)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -55,9 +61,14 @@ func (h *AuthHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 func (h *AuthHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
-	id, _ := strconv.ParseUint(idStr, 10, 32)
+	id, _ := strconv.Atoi(idStr)
 
-	if err := h.svc.DeleteUser(r.Context(), uint(id)); err != nil {
+	err := h.svc.DeleteUser(r.Context(), uint(id))
+	if err != nil {
+		if errors.Is(err, application.ErrUserNotFound) {
+			http.Error(w, "User not found", http.StatusNotFound)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
