@@ -9,6 +9,7 @@ FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/chat-server .
 COPY --from=builder /app/services/chat/migrations ./migrations
+COPY --from=builder /app/services/chat/internal/api ./api
 EXPOSE 8080
 CMD ["./chat-server"]
  

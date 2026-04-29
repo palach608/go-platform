@@ -1,6 +1,6 @@
 package main
 
-import "github.com/SilverName608/go-chat/internal/di"
+import "github.com/palach608/go-platform/services/chat/internal/di"
 
 func main() {
 	di.NewApp().Run()

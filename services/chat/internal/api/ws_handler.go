@@ -3,11 +3,10 @@ package api
 import (
 	"net/http"
 
-	"github.com/SilverName608/go-chat/internal/domain/service"
-	"github.com/SilverName608/go-chat/internal/hub"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/palach608/go-platform/services/chat/internal/hub"
 )
 
 var upgrader = websocket.Upgrader{
@@ -19,12 +18,11 @@ var upgrader = websocket.Upgrader{
 }
 
 type WSHandler struct {
-	hub     *hub.Hub
-	userSvc service.UserService
+	hub *hub.Hub
 }
 
-func NewWSHandler(h *hub.Hub, userSvc service.UserService) *WSHandler {
-	return &WSHandler{hub: h, userSvc: userSvc}
+func NewWSHandler(h *hub.Hub) *WSHandler {
+	return &WSHandler{hub: h}
 }
 
 func (wh *WSHandler) ServeWS(w http.ResponseWriter, r *http.Request) {
@@ -41,10 +39,9 @@ func (wh *WSHandler) ServeWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username := userID.String()
-	user, err := wh.userSvc.GetByID(r.Context(), userID)
-	if err == nil && user != nil {
-		username = user.Username
+	username, _ := r.Context().Value("username").(string)
+	if username == "" {
+		username = userID.String()
 	}
 
 	conn, err := upgrader.Upgrade(w, r, nil)

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/SilverName608/go-chat/internal/domain/service"
+	"github.com/palach608/go-platform/services/chat/internal/domain/service"
 )
 
 type BroadcastMessage struct {

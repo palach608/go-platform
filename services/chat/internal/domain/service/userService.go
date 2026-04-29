@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"github.com/SilverName608/go-chat/internal/domain/model"
 	"github.com/google/uuid"
+	"github.com/palach608/go-platform/services/chat/internal/domain/model"
 )
 
 type UserService interface {

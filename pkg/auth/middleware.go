@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 type Middleware struct {
@@ -18,36 +19,40 @@ func NewMiddleware(jwtSecret string) *Middleware {
 
 func (m *Middleware) Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("Authorization")
-		if token == "" {
-			http.Error(w, "Authorization header required", http.StatusUnauthorized)
+		var tokenString string
+
+		header := r.Header.Get("Authorization")
+		if header != "" {
+			tokenString = strings.TrimPrefix(header, "Bearer ")
+		} else {
+			tokenString = r.URL.Query().Get("token")
+		}
+
+		if tokenString == "" {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		tokenString := strings.TrimPrefix(token, "Bearer ")
-		if tokenString == token {
-			http.Error(w, "Bearer token required", http.StatusUnauthorized)
-			return
-		}
-
-		claims := &Claims{}
-		tokenParsed, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		decoded, err := jwt.ParseWithClaims(tokenString, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte(m.jwtSecret), nil
 		})
-
-		if err != nil || !tokenParsed.Valid {
-			http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
+		if err != nil || !decoded.Valid {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "user_id", claims.UserID)
+		claims := decoded.Claims.(jwt.MapClaims)
+
+		userID, err := uuid.Parse(claims["user_id"].(string))
+		if err != nil {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		username, _ := claims["username"].(string)
+
+		ctx := context.WithValue(r.Context(), "user_id", userID)
+		ctx = context.WithValue(ctx, "username", username)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
-}
-
-func GetUserID(r *http.Request) uint {
-	if id, ok := r.Context().Value("user_id").(uint); ok {
-		return id
-	}
-	return 0
 }

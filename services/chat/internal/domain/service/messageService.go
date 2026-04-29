@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	domainModel "github.com/SilverName608/go-chat/internal/domain/model"
+	domainModel "github.com/palach608/go-platform/services/chat/internal/domain/model"
 )
 
 type MessageService interface {

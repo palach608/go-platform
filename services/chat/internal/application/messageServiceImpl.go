@@ -3,10 +3,10 @@ package application
 import (
 	"context"
 
-	domainModel "github.com/SilverName608/go-chat/internal/domain/model"
-	"github.com/SilverName608/go-chat/internal/domain/service"
-	"github.com/SilverName608/go-chat/internal/infrastructure/repository"
 	"github.com/google/uuid"
+	domainModel "github.com/palach608/go-platform/services/chat/internal/domain/model"
+	"github.com/palach608/go-platform/services/chat/internal/domain/service"
+	"github.com/palach608/go-platform/services/chat/internal/infrastructure/repository"
 )
 
 type MessageServiceImpl struct {

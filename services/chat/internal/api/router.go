@@ -4,14 +4,20 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/palach608/go-platform/pkg/auth"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-func NewRouter(userHandler *UserHandler, roomHandler *RoomHandler, wsHandler *WSHandler, middleware *Middleware) chi.Router {
+func NewRouter(roomHandler *RoomHandler, wsHandler *WSHandler, middleware *auth.Middleware) chi.Router {
 	router := chi.NewRouter()
-	router.Handle("/*", http.FileServer(http.Dir("./web")))
 
-	router.Post("/api/v1/auth/register", userHandler.Register)
-	router.Post("/api/v1/auth/login", userHandler.Login)
+	fs := http.FileServer(http.Dir("./api"))
+	router.Handle("/api-docs/*", http.StripPrefix("/api-docs/", fs))
+	router.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/api-docs/swagger.yaml"),
+	))
+
+	router.Handle("/*", http.FileServer(http.Dir("./web")))
 
 	router.Group(func(r chi.Router) {
 		r.Use(middleware.Auth)

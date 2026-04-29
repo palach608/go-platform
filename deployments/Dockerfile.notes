@@ -9,5 +9,6 @@ FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/notes-server .
 COPY --from=builder /app/services/notes/migrations ./migrations
+COPY --from=builder /app/services/notes/internal/api ./api
 EXPOSE 8082
 CMD ["./notes-server"]

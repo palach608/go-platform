@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"strconv"
 
-	apiModel "github.com/SilverName608/go-chat/internal/api/model"
-	"github.com/SilverName608/go-chat/internal/domain/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	apiModel "github.com/palach608/go-platform/services/chat/internal/api/model"
+	"github.com/palach608/go-platform/services/chat/internal/domain/service"
 )
 
 type RoomHandler struct {

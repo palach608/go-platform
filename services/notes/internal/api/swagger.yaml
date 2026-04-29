@@ -1,0 +1,158 @@
+openapi: 3.0.0
+info:
+  title: Notes Service API
+  version: 1.0.0
+  description: Сервис для управления заметками
+
+servers:
+  - url: http://localhost:8082
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Note:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        body:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateNoteRequest:
+      type: object
+      required: [title, body]
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+
+    UpdateNoteRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+
+paths:
+  /api/v1/notes:
+    get:
+      summary: Получить все заметки
+      tags: [Notes]
+      responses:
+        200:
+          description: Список заметок
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Note'
+
+    post:
+      summary: Создать заметку
+      tags: [Notes]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNoteRequest'
+      responses:
+        200:
+          description: Созданная заметка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+        401:
+          description: Не авторизован
+
+  /api/v1/notes/{id}:
+    get:
+      summary: Получить заметку по ID
+      tags: [Notes]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Заметка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+        401:
+          description: Не авторизован
+
+    put:
+      summary: Обновить заметку
+      tags: [Notes]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNoteRequest'
+      responses:
+        200:
+          description: Обновлённая заметка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+        401:
+          description: Не авторизован
+
+    delete:
+      summary: Удалить заметку
+      tags: [Notes]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        204:
+          description: Удалено
+        401:
+          description: Не авторизован

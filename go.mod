@@ -3,7 +3,6 @@ module github.com/palach608/go-platform
 go 1.26.2
 
 require (
-	github.com/SilverName608/go-chat v0.0.0-20260428150814-346c91d4cb7f
 	github.com/go-chi/chi/v5 v5.2.5
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/golang-migrate/migrate/v4 v4.19.1

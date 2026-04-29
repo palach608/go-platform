@@ -4,13 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/SilverName608/go-chat/internal/api"
-	"github.com/SilverName608/go-chat/internal/application"
-	"github.com/SilverName608/go-chat/internal/config"
-	"github.com/SilverName608/go-chat/internal/domain/service"
-	"github.com/SilverName608/go-chat/internal/hub"
-	"github.com/SilverName608/go-chat/internal/infrastructure/db"
-	"github.com/SilverName608/go-chat/internal/infrastructure/repository"
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -20,7 +13,15 @@ import (
 
 	goredis "github.com/redis/go-redis/v9"
 
-	redisClient "github.com/SilverName608/go-chat/internal/infrastructure/redis"
+	"github.com/palach608/go-platform/pkg/auth"
+	"github.com/palach608/go-platform/services/chat/internal/api"
+	"github.com/palach608/go-platform/services/chat/internal/application"
+	"github.com/palach608/go-platform/services/chat/internal/config"
+	"github.com/palach608/go-platform/services/chat/internal/domain/service"
+	"github.com/palach608/go-platform/services/chat/internal/hub"
+	"github.com/palach608/go-platform/services/chat/internal/infrastructure/db"
+	redisClient "github.com/palach608/go-platform/services/chat/internal/infrastructure/redis"
+	"github.com/palach608/go-platform/services/chat/internal/infrastructure/repository"
 )
 
 func NewApp() *fx.App {
@@ -30,10 +31,6 @@ func NewApp() *fx.App {
 		fx.Provide(NewRedisClient),
 
 		fx.Provide(fx.Annotate(
-			repository.NewPostgresUserRepository,
-			fx.As(new(repository.UserRepository)),
-		)),
-		fx.Provide(fx.Annotate(
 			repository.NewPostgresRoomRepository,
 			fx.As(new(repository.RoomRepository)),
 		)),
@@ -42,12 +39,6 @@ func NewApp() *fx.App {
 			fx.As(new(repository.MessageRepository)),
 		)),
 
-		fx.Provide(fx.Annotate(
-			func(repo repository.UserRepository, cfg *config.Config) service.UserService {
-				return application.NewUserService(repo, cfg.JWTSecret)
-			},
-			fx.As(new(service.UserService)),
-		)),
 		fx.Provide(fx.Annotate(
 			application.NewRoomService,
 			fx.As(new(service.RoomService)),
@@ -59,10 +50,10 @@ func NewApp() *fx.App {
 
 		fx.Provide(hub.NewHub),
 
-		fx.Provide(func(cfg *config.Config) *api.Middleware {
-			return api.NewMiddleware(cfg.JWTSecret)
+		fx.Provide(func(cfg *config.Config) *auth.Middleware {
+			return auth.NewMiddleware(cfg.JWTSecret)
 		}),
-		fx.Provide(api.NewUserHandler),
+
 		fx.Provide(api.NewRoomHandler),
 		fx.Provide(api.NewWSHandler),
 		fx.Provide(api.NewRouter),
@@ -76,11 +67,12 @@ func RunServer(router chi.Router, cfg *config.Config, h *hub.Hub) {
 		panic(err)
 	}
 	go h.Run()
-	fmt.Printf("Server launch → http://localhost:%s\n", cfg.HTTPPort)
+	fmt.Printf("Chat Service launch → http://localhost:%s\n", cfg.HTTPPort)
 	if err := http.ListenAndServe(":"+cfg.HTTPPort, router); err != nil {
 		panic(err)
 	}
 }
+
 func runMigrations(cfg *config.Config) error {
 	m, err := migrate.New(
 		"file://migrations",
