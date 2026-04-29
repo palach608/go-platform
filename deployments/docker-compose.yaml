@@ -1,0 +1,32 @@
+version: '3.8'
+name: go-platform
+
+services:
+  auth-db:
+    image: postgres:16-alpine
+    container_name: auth-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: auth_db 
+    ports:
+      - "5433:5432"
+    volumes:
+      - auth_pgdata:/var/lib/postgresql/data
+
+  auth-service:
+    build:
+      context: ..
+      dockerfile: services/auth/Dockerfile
+    container_name: auth-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - auth-db
+    environment:
+      DB_DSN: "postgres://postgres:pass@auth-db:5432/auth_db?sslmode=disable"
+      HTTP_PORT: 8081
+      JWT_SECRET: "super-secret-key"
+
+volumes:
+  auth_pgdata:
