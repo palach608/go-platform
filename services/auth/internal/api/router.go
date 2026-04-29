@@ -8,7 +8,12 @@ import (
 func NewRouter(h *handlers.AuthHandler) *chi.Mux {
 	r := chi.NewRouter()
 
-	r.Post("/auth/register", h.Register)
+	r.Route("/auth", func(r chi.Router) {
+		r.Post("/register", h.Register)
+		r.Post("/login", h.Login)
+		r.Put("/user", h.Update)
+		r.Delete("/user/{id}", h.Delete)
+	})
 
 	return r
 }
