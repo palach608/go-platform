@@ -1,0 +1,13 @@
+FROM golang:1.26.2-alpine AS builder
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN go build -o notes-server ./services/notes/cmd/server/main.go
+
+FROM alpine:latest
+WORKDIR /app
+COPY --from=builder /app/notes-server .
+COPY --from=builder /app/services/notes/migrations ./migrations
+EXPOSE 8082
+CMD ["./notes-server"]

@@ -15,9 +15,7 @@ type Config struct {
 }
 
 func Load() (*Config, error) {
-	if err := godotenv.Load(); err != nil {
-		return nil, err
-	}
+	godotenv.Load()
 
 	return &Config{
 		HTTPPort:      os.Getenv("HTTP_PORT"),
