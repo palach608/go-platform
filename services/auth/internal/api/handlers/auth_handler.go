@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/palach608/go-platform/services/auth/internal/application"
@@ -60,10 +59,9 @@ func (h *AuthHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, "id")
-	id, _ := strconv.Atoi(idStr)
+	id := chi.URLParam(r, "id")
 
-	err := h.svc.DeleteUser(r.Context(), uint(id))
+	err := h.svc.DeleteUser(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, application.ErrUserNotFound) {
 			http.Error(w, "User not found", http.StatusNotFound)

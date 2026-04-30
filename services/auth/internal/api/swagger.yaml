@@ -18,10 +18,11 @@ paths:
                 username: {type: string}
                 email: {type: string}
                 password: {type: string}
-                responses:
-                  201: {description: "Создано"}
-                  409: {description: "Пользователь уже существует"}
-          
+      responses:
+        201:
+          description: Создано
+        409:
+          description: Пользователь уже существует
 
   /auth/login:
     post:
@@ -45,6 +46,8 @@ paths:
                 type: object
                 properties:
                   token: {type: string}
+        401:
+          description: Неверные данные
 
   /auth/user:
     put:
@@ -78,5 +81,7 @@ paths:
           schema:
             type: integer
       responses:
-        204: {description: "Успешно удалено"}
-        404: {description: "Пользователь не найден"}
+        204:
+          description: Успешно удалено
+        404:
+          description: Пользователь не найден

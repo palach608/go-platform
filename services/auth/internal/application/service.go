@@ -24,7 +24,6 @@ var (
 
 func NewAuthService(repo domain.UserRepository) *AuthService {
 	secret := os.Getenv("JWT_SECRET")
-
 	return &AuthService{
 		repo:      repo,
 		jwtSecret: secret,
@@ -32,8 +31,8 @@ func NewAuthService(repo domain.UserRepository) *AuthService {
 }
 
 func (s *AuthService) Register(ctx context.Context, username, email, password string) error {
-	existing, _ := s.repo.GetByEmail(ctx, email)
-	if existing != nil {
+	existing, err := s.repo.GetByEmail(ctx, email)
+	if err == nil && existing != nil {
 		return ErrUserAlreadyExists
 	}
 
@@ -54,8 +53,9 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (string
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": user.ID,
-		"exp":     time.Now().Add(time.Hour * 24).Unix(),
+		"user_id":  user.ID,
+		"username": user.Username,
+		"exp":      time.Now().Add(time.Hour * 24).Unix(),
 	})
 
 	return token.SignedString([]byte(s.jwtSecret))
@@ -69,7 +69,7 @@ func (s *AuthService) UpdateUser(ctx context.Context, user *domain.User) error {
 	return s.repo.Update(ctx, user)
 }
 
-func (s *AuthService) DeleteUser(ctx context.Context, id uint) error {
+func (s *AuthService) DeleteUser(ctx context.Context, id string) error {
 	_, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -77,6 +77,5 @@ func (s *AuthService) DeleteUser(ctx context.Context, id uint) error {
 		}
 		return err
 	}
-
 	return s.repo.Delete(ctx, id)
 }
