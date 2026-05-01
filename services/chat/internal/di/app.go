@@ -1,8 +1,11 @@
 package di
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-migrate/migrate/v4"
@@ -14,6 +17,7 @@ import (
 	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/palach608/go-platform/pkg/auth"
+	kafkapkg "github.com/palach608/go-platform/pkg/broker"
 	"github.com/palach608/go-platform/services/chat/internal/api"
 	"github.com/palach608/go-platform/services/chat/internal/application"
 	"github.com/palach608/go-platform/services/chat/internal/config"
@@ -22,6 +26,7 @@ import (
 	"github.com/palach608/go-platform/services/chat/internal/infrastructure/db"
 	redisClient "github.com/palach608/go-platform/services/chat/internal/infrastructure/redis"
 	"github.com/palach608/go-platform/services/chat/internal/infrastructure/repository"
+	kafkahandler "github.com/palach608/go-platform/services/chat/internal/kafka"
 )
 
 func NewApp() *fx.App {
@@ -49,6 +54,7 @@ func NewApp() *fx.App {
 		)),
 
 		fx.Provide(hub.NewHub),
+		fx.Provide(kafkahandler.NewNoteEventHandler),
 
 		fx.Provide(func(cfg *config.Config) *auth.Middleware {
 			return auth.NewMiddleware(cfg.JWTSecret)
@@ -62,11 +68,19 @@ func NewApp() *fx.App {
 	)
 }
 
-func RunServer(router chi.Router, cfg *config.Config, h *hub.Hub) {
+func RunServer(router chi.Router, cfg *config.Config, h *hub.Hub, handler *kafkahandler.NoteEventHandler) {
 	if err := runMigrations(cfg); err != nil {
 		panic(err)
 	}
+
 	go h.Run()
+
+	go func() {
+		brokers := strings.Split(os.Getenv("KAFKA_BROKERS"), ",")
+		consumer := kafkapkg.NewConsumer(brokers, kafkapkg.TopicNoteCreated, "chat-group")
+		consumer.Consume(context.Background(), handler.Handle)
+	}()
+
 	fmt.Printf("Chat Service launch → http://localhost:%s\n", cfg.HTTPPort)
 	if err := http.ListenAndServe(":"+cfg.HTTPPort, router); err != nil {
 		panic(err)
@@ -74,10 +88,7 @@ func RunServer(router chi.Router, cfg *config.Config, h *hub.Hub) {
 }
 
 func runMigrations(cfg *config.Config) error {
-	m, err := migrate.New(
-		"file://migrations",
-		cfg.DBDSN,
-	)
+	m, err := migrate.New("file://migrations", cfg.DBDSN)
 	if err != nil {
 		return err
 	}

@@ -3,6 +3,8 @@ package di
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-migrate/migrate/v4"
@@ -12,6 +14,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/palach608/go-platform/pkg/auth"
+	kafkapkg "github.com/palach608/go-platform/pkg/broker"
 	"github.com/palach608/go-platform/services/notes/internal/api"
 	"github.com/palach608/go-platform/services/notes/internal/application"
 	"github.com/palach608/go-platform/services/notes/internal/config"
@@ -24,6 +27,7 @@ func NewApp() *fx.App {
 	return fx.New(
 		fx.Provide(config.Load),
 		fx.Provide(NewPool),
+		fx.Provide(NewKafkaProducer),
 
 		fx.Provide(fx.Annotate(
 			repository.NewPostgresNoteRepository,
@@ -52,6 +56,11 @@ func NewRouter(noteHandler *api.NoteHandler, middleware *auth.Middleware) chi.Ro
 
 func NewPool(cfg *config.Config) (*pgxpool.Pool, error) {
 	return db.NewPool(cfg.DBDSN)
+}
+
+func NewKafkaProducer() *kafkapkg.Producer {
+	brokers := strings.Split(os.Getenv("KAFKA_BROKERS"), ",")
+	return kafkapkg.NewProducer(brokers, kafkapkg.TopicNoteCreated)
 }
 
 func RunServer(router chi.Router, cfg *config.Config) {

@@ -14,6 +14,10 @@ func NewRoom(id string) *Room {
 	}
 }
 
+func (r *Room) Clients() map[*Client]bool {
+	return r.clients
+}
+
 func mustParseUUID(s string) uuid.UUID {
 	id, err := uuid.Parse(s)
 	if err != nil {

@@ -25,14 +25,15 @@ func (nh *NoteHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	username, _ := r.Context().Value("username").(string)
+
 	var req apiModel.CreateNoteRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Incorrect JSON", http.StatusBadRequest)
 		return
 	}
 
-	note, err := nh.svc.Create(userID, &req)
+	note, err := nh.svc.Create(r.Context(), userID, username, &req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -80,8 +81,7 @@ func (nh *NoteHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req apiModel.UpdateNoteRequest
-	err = json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Incorrect JSON", http.StatusBadRequest)
 		return
 	}
@@ -104,8 +104,7 @@ func (nh *NoteHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = nh.svc.Delete(id)
-	if err != nil {
+	if err := nh.svc.Delete(id); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
