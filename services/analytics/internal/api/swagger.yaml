@@ -1,0 +1,48 @@
+openapi: 3.0.0
+info:
+  title: Analytics Service API
+  version: 1.0.0
+  description: Сервис аналитики на базе ClickHouse
+
+servers:
+  - url: http://localhost:8083
+
+paths:
+  /api/v1/stats/top-users:
+    get:
+      summary: Топ активных пользователей за неделю
+      tags: [Stats]
+      responses:
+        200:
+          description: Список пользователей
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    username:
+                      type: string
+                    total:
+                      type: integer
+
+  /api/v1/stats/notes-per-day:
+    get:
+      summary: Количество заметок по дням за неделю
+      tags: [Stats]
+      responses:
+        200:
+          description: Статистика по дням
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    day:
+                      type: string
+                      format: date
+                    total:
+                      type: integer
