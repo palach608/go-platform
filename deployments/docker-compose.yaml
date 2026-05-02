@@ -77,6 +77,19 @@ services:
       timeout: 10s
       retries: 5
 
+  clickhouse:
+    image: clickhouse/clickhouse-server:24
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    healthcheck:
+      test: ["CMD-SHELL", "clickhouse-client --query 'SELECT 1'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   auth:
     build:
       context: ..
@@ -128,5 +141,22 @@ services:
       JWT_SECRET: supersecretkey
       KAFKA_BROKERS: kafka:9092
 
+  analytics:
+    build:
+      context: ..
+      dockerfile: deployments/Dockerfile.analytics
+    ports:
+      - "8083:8083"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    environment:
+      HTTP_PORT: 8083
+      KAFKA_BROKERS: kafka:9092
+      CLICKHOUSE_DSN: clickhouse://clickhouse:9000/default
+
 volumes:
   pgdata:
+  clickhouse_data:
